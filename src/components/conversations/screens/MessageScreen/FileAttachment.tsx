@@ -1,5 +1,6 @@
+// src/components/conversations/screens/MessageScreen/FileAttachment.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { CustomColors, customTypography } from '../../../../theme/theme';
 
@@ -7,32 +8,59 @@ interface FileAttachmentProps {
   fileName: string;
   fileUrl: string;
   theme: CustomColors;
-  isMyMessage: boolean; // Keep this prop for potential future styling differences
+  isMyMessage: boolean;
+  onPress?: () => void;
 }
 
-const FileAttachment: React.FC<FileAttachmentProps> = ({ fileName, fileUrl, theme, isMyMessage }) => {
-  const handlePress = async () => {
-    try {
-      const supported = await Linking.canOpenURL(fileUrl);
-      if (supported) {
-        await Linking.openURL(fileUrl);
-      } else {
-        Alert.alert("Error", `Don't know how to open this URL: ${fileUrl}`);
-      }
-    } catch (error) {
-      Alert.alert("Error", "An error occurred while trying to open the file.");
-      console.error("File open error:", error);
+const FileAttachment: React.FC<FileAttachmentProps> = ({ 
+  fileName, 
+  fileUrl, 
+  theme, 
+  isMyMessage,
+  onPress 
+}) => {
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return 'picture-as-pdf';
+      case 'doc':
+      case 'docx':
+        return 'description';
+      case 'xls':
+      case 'xlsx':
+        return 'table-chart';
+      case 'ppt':
+      case 'pptx':
+        return 'slideshow';
+      case 'txt':
+        return 'text-snippet';
+      case 'zip':
+      case 'rar':
+      case '7z':
+        return 'archive';
+      default:
+        return 'insert-drive-file';
     }
   };
 
-  // CORRECTED: Use the primary text color, as the background for media messages
-  // is theme.background2 for both you and the other user.
+  const getFileSize = () => {
+    // This would typically come from the file metadata
+    // For now, we'll show a placeholder
+    return 'Tap to view';
+  };
+
   const fileInfoColor = theme.textPrimary;
 
   return (
-    <TouchableOpacity onPress={handlePress} style={styles.container}>
-      <View style={[styles.iconContainer, { backgroundColor: theme.borderLight }]}>
-        <Icon name="insert-drive-file" type="material" size={28} color={theme.iconSecondary} />
+    <TouchableOpacity onPress={onPress} style={styles.container} activeOpacity={0.8}>
+      <View style={[styles.iconContainer, { backgroundColor: theme.primaryLight + '20' }]}>
+        <Icon 
+          name={getFileIcon(fileName)} 
+          type="material" 
+          size={32} 
+          color={theme.primary} 
+        />
       </View>
       <View style={styles.textContainer}>
         <Text
@@ -42,6 +70,17 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ fileName, fileUrl, them
         >
           {fileName}
         </Text>
+        <Text style={[styles.fileSize, { color: theme.textSecondary }]}>
+          {getFileSize()}
+        </Text>
+      </View>
+      <View style={styles.actionContainer}>
+        <Icon 
+          name="open-in-new" 
+          type="material" 
+          size={20} 
+          color={theme.textSecondary} 
+        />
       </View>
     </TouchableOpacity>
   );
@@ -51,19 +90,30 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    maxWidth: 250,
-    padding: 10,
+    maxWidth: 280,
+    padding: 12,
+    backgroundColor: 'transparent',
   },
   iconContainer: {
-    padding: 10,
+    padding: 12,
     borderRadius: 12,
+    marginRight: 12,
   },
   textContainer: {
-    marginLeft: 10,
     flex: 1,
+    marginRight: 8,
   },
   fileName: {
-    ...customTypography.body.regular,
+    ...customTypography.body.medium,
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  fileSize: {
+    ...customTypography.caption1.regular,
+    fontSize: 12,
+  },
+  actionContainer: {
+    padding: 4,
   },
 });
 
